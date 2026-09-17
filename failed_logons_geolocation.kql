@@ -1,0 +1,9 @@
+// Azure Sentinel KQL Query: Extracting failed Windows logon events paired with custom GeoIP lookups
+let GeoIPDB_FULL = _GetWatchlist("geoip");
+let WindowsEvents = SecurityEvent;
+WindowsEvents
+| where EventID == 4625
+| order by TimeGenerated desc
+| evaluate ipv4_lookup(GeoIPDB_FULL, IpAddress, network)
+| summarize FailureCount = count() by IpAddress, latitude, longitude, cityname, countryname
+| project FailureCount, AttackerIp = IpAddress, city = cityname, country = countryname
